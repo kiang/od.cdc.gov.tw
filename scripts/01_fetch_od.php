@@ -34,12 +34,14 @@ while ($line = fgetcsv($fh, 2048)) {
                 'data' => [],
             ];
         }
-        $cityCode = $data['縣市'] . $data['鄉鎮'];
         $confirmed[$y]['meta']['total'] += $data['確定病例數'];
-        if(!isset($confirmed[$y]['data'][$cityCode])) {
-            $confirmed[$y]['data'][$cityCode] = 0;
+        if(!isset($confirmed[$y]['data'][$data['縣市']])) {
+            $confirmed[$y]['data'][$data['縣市']] = [];
         }
-        $confirmed[$y]['data'][$cityCode] += $data['確定病例數'];
+        if(!isset($confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']])) {
+            $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] = 0;
+        }
+        $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] += $data['確定病例數'];
     }
 }
 foreach($confirmed AS $y => $data1) {
@@ -47,7 +49,7 @@ foreach($confirmed AS $y => $data1) {
     $targetFile = $pathConfirmed . '/' . $y . '.json';
     $fileToWrite = true;
     if(file_exists($targetFile)) {
-        $json = json_decode(file_get_contents($targetFile));
+        $json = json_decode(file_get_contents($targetFile), true);
         if($json['data'] === $confirmed[$y]['data']) {
             $fileToWrite = false;
         }
