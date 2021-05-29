@@ -95,6 +95,7 @@ foreach($confirmed AS $y => $data1) {
     }
     if($fileToWrite) {
         file_put_contents($targetFile, json_encode($confirmed[$y], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        file_put_contents($pathConfirmed . '/' . date('Ymd', strtotime('-1 day')) . '.json', json_encode($confirmed[$y], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 }
 
