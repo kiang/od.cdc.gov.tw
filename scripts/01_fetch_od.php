@@ -46,6 +46,9 @@ while ($line = fgetcsv($fh, 2048)) {
 }
 foreach($confirmed AS $y => $data1) {
     ksort($confirmed[$y]['data']);
+    foreach($confirmed[$y]['data'] AS $city => $data2) {
+        ksort($confirmed[$y]['data'][$city]);
+    }
     $targetFile = $pathConfirmed . '/' . $y . '.json';
     $fileToWrite = true;
     if(file_exists($targetFile)) {
