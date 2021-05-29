@@ -19,8 +19,27 @@ $pathConfirmed = $dataPath . '/confirmed';
 if (!file_exists($pathConfirmed)) {
     mkdir($pathConfirmed, 0777, true);
 }
+$pathTown = $dataPath . '/town';
+if (!file_exists($pathTown)) {
+    mkdir($pathTown, 0777, true);
+}
+$timeBegin = strtotime('-60 days');
+$timeEnd = time();
+$townTemplate = [
+    'days' => [],
+    'gender' => [
+        'm' => 0,
+        'f' => 0,
+    ],
+    'age' => [],
+];
+for($i = $timeBegin; $i < $timeEnd; $i+= 86400) {
+    $townTemplate['days'][date('Ymd', $i)] = 0;
+}
+
 $confirmed = [];
-$now = date('Y-m-d H:i:s');
+$now = date('Y-m-d H:i:s', $timeEnd);
+$towns = [];
 while ($line = fgetcsv($fh, 2048)) {
     $data = array_combine($head, $line);
     if ($data['是否為境外移入'] === '否') {
@@ -42,6 +61,23 @@ while ($line = fgetcsv($fh, 2048)) {
             $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] = 0;
         }
         $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] += $data['確定病例數'];
+
+        $townKey = $data['縣市'] . $data['鄉鎮'];
+        if(!isset($towns[$townKey])) {
+            $towns[$townKey] = $townTemplate;
+        }
+        if(isset($towns[$townKey]['days'][$data['個案研判日']])) {
+            $towns[$townKey]['days'][$data['個案研判日']] += $data['確定病例數'];
+        }
+        if($data['性別'] === '女') {
+            $towns[$townKey]['gender']['f'] += $data['確定病例數'];
+        } else {
+            $towns[$townKey]['gender']['m'] += $data['確定病例數'];
+        }
+        if(!isset($towns[$townKey]['age'][$data['年齡層']])) {
+            $towns[$townKey]['age'][$data['年齡層']] = 0;
+        }
+        $towns[$townKey]['age'][$data['年齡層']] += $data['確定病例數'];
     }
 }
 foreach($confirmed AS $y => $data1) {
@@ -60,4 +96,8 @@ foreach($confirmed AS $y => $data1) {
     if($fileToWrite) {
         file_put_contents($targetFile, json_encode($confirmed[$y], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
+}
+
+foreach($towns AS $k => $data) {
+    file_put_contents($pathTown . '/' . $k . '.json', json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
