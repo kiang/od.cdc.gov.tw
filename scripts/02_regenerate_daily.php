@@ -10,6 +10,7 @@ $now = date('Y-m-d H:i:s');
 
 $confirmed = [
     'meta' => [
+        'day' => '',
         'total' => 0,
         'modified' => $now,
     ],
@@ -56,8 +57,9 @@ foreach(glob($basePath . '/data/od/town/*.json') AS $jsonFile) {
 }
 
 for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
+    $day = date('Ymd', $i);
+    $confirmed['meta']['day'] = $day;
     if ($i !== $timeBegin) {
-        $day = date('Ymd', $i);
         foreach($pool[$day] AS $city => $data1) {
             foreach($data1 AS $town => $count) {
                 if($count > 0) {
@@ -82,5 +84,6 @@ for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
             ksort($confirmed['data'][$city]);
         }
     }
+    
     file_put_contents($pathConfirmed . '/' . date('Ymd', $i) . '.json', json_encode($confirmed, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
