@@ -45,8 +45,14 @@ while ($line = fgetcsv($fh, 2048)) {
     if ($data['是否為境外移入'] === '否') {
         $y = substr($data['個案研判日'], 0, 4);
         if (!isset($confirmed[$y])) {
+            if($y == date('Y')) {
+                $day = date('Ymd', strtotime('-1 day'));
+            } else {
+                $day = date('Ymd', strtotime($y . '-12-31'));
+            }
             $confirmed[$y] = [
                 'meta' => [
+                    'day' => $day,
                     'total' => 0,
                     'modified' => $now,
                 ],
@@ -95,7 +101,7 @@ foreach($confirmed AS $y => $data1) {
     }
     if($fileToWrite) {
         file_put_contents($targetFile, json_encode($confirmed[$y], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        file_put_contents($pathConfirmed . '/' . date('Ymd', strtotime('-1 day')) . '.json', json_encode($confirmed[$y], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        file_put_contents($pathConfirmed . '/' . $day . '.json', json_encode($confirmed[$y], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 }
 
