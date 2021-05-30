@@ -13,6 +13,36 @@ file_put_contents($statsFile, file_get_contents('https://od.cdc.gov.tw/eic/covid
 file_put_contents($specimenFile, file_get_contents('https://od.cdc.gov.tw/eic/covid19/covid19_tw_specimen.csv'));
 file_put_contents($dailyFile, file_get_contents('https://od.cdc.gov.tw/eic/Day_Confirmation_Age_County_Gender_19CoV.csv'));
 
+$fh = fopen($specimenFile, 'r');
+$head = fgetcsv($fh, 2048);
+$specimen = [];
+while($line = fgetcsv($fh, 2048)) {
+    $data = array_combine($head, $line);
+    $time = strtotime($data['通報日']);
+    $y = date('Y', $time);
+    if(!isset($specimen[$y])) {
+        $specimen[$y] = [];
+    }
+    array_shift($data);
+    foreach($data AS $k => $v) {
+        $data[$k] = intval($v);
+    }
+    $specimen[$y][date('md', $time)] = array_values($data);
+}
+$specimenPath = $dataPath . '/specimen';
+if(!file_exists($specimenPath)) {
+    mkdir($specimenPath, 0777);
+}
+foreach($specimen AS $y => $data1) {
+    ksort($data1);
+    file_put_contents($specimenPath . '/' . $y . '.json', json_encode($data1, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+$fh = fopen($statsFile, 'r');
+$head = fgetcsv($fh, 2048);
+$line = fgetcsv($fh, 2048);
+file_put_contents($dataPath . '/meta.json', json_encode(array_combine($head, $line), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
 $fh = fopen($dailyFile, 'r');
 $head = fgetcsv($fh, 2048);
 $pathConfirmed = $dataPath . '/confirmed';
