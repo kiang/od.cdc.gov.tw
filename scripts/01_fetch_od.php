@@ -135,7 +135,13 @@ foreach($confirmed AS $y => $data1) {
     }
 }
 
+function cmp($a, $b) {
+    $a = intval($a);
+    $b = intval($b);
+    return ($a > $b);
+}
+
 foreach($towns AS $k => $data) {
-    ksort($data['age']);
+    uksort($data['age'], 'cmp');
     file_put_contents($pathTown . '/' . $k . '.json', json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
