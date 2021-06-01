@@ -116,7 +116,7 @@ while ($line = fgetcsv($fh, 2048)) {
                 1
             );
         } else {
-            $confirmed[$y]['rate'][$data['縣市']][$data['鄉鎮']] = 100.0;
+            $confirmed[$y]['rate'][$data['縣市']][$data['鄉鎮']] = 1.0;
         }
         
 
