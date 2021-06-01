@@ -15,7 +15,9 @@ $confirmed = [
         'modified' => $now,
     ],
     'data' => [],
+    'rate' => [],
 ];
+
 $fh = fopen($dailyFile, 'r');
 $head = fgetcsv($fh, 2048);
 while ($line = fgetcsv($fh, 2048)) {
@@ -31,25 +33,26 @@ while ($line = fgetcsv($fh, 2048)) {
         }
         if (!isset($confirmed['data'][$data['縣市']][$data['鄉鎮']])) {
             $confirmed['data'][$data['縣市']][$data['鄉鎮']] = 0;
+            $confirmed['rate'][$data['縣市']][$data['鄉鎮']] = 0.0;
         }
         $confirmed['data'][$data['縣市']][$data['鄉鎮']] += $data['確定病例數'];
     }
 }
 
 $pool = [];
-foreach(glob($basePath . '/data/od/town/*.json') AS $jsonFile) {
+foreach (glob($basePath . '/data/od/town/*.json') as $jsonFile) {
     $p = pathinfo($jsonFile);
     $city = mb_substr($p['filename'], 0, 3, 'utf-8');
     $town = mb_substr($p['filename'], 3, null, 'utf-8');
     $json = json_decode(file_get_contents($jsonFile), true);
-    foreach($json['days'] AS $day => $count) {
-        if(!isset($pool[$day])) {
+    foreach ($json['days'] as $day => $count) {
+        if (!isset($pool[$day])) {
             $pool[$day] = [];
         }
-        if(!isset($pool[$day][$city])) {
+        if (!isset($pool[$day][$city])) {
             $pool[$day][$city] = [];
         }
-        if(!isset($pool[$day][$city][$town])) {
+        if (!isset($pool[$day][$city][$town])) {
             $pool[$day][$city][$town] = 0;
         }
         $pool[$day][$city][$town] += $count;
@@ -58,32 +61,41 @@ foreach(glob($basePath . '/data/od/town/*.json') AS $jsonFile) {
 
 for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
     $day = date('Ymd', $i);
+    $yesterday = date('Ymd', strtotime('-1 day', $i));
     $confirmed['meta']['day'] = $day;
     if ($i !== $timeBegin) {
-        foreach($pool[$day] AS $city => $data1) {
-            foreach($data1 AS $town => $count) {
-                if($count > 0) {
-                    if(!isset($confirmed['data'][$city])) {
+        foreach ($pool[$day] as $city => $data1) {
+            foreach ($data1 as $town => $count) {
+                if ($count > 0) {
+                    if (!isset($confirmed['data'][$city])) {
                         $confirmed['data'][$city] = [];
+                        $confirmed['rate'][$city] = [];
                     }
-                    if(!isset($confirmed['data'][$city][$town])) {
+                    if (!isset($confirmed['data'][$city][$town])) {
                         $confirmed['data'][$city][$town] = 0;
+                        $confirmed['rate'][$city][$town] = 0.0;
+                    }
+                    if($confirmed['data'][$city][$town] > 0) {
+                        $confirmed['rate'][$city][$town] = round($count / $confirmed['data'][$city][$town], 1);
+                    } else {
+                        $confirmed['rate'][$city][$town] = 1.0;
                     }
                     $confirmed['data'][$city][$town] += $count;
                     $confirmed['meta']['total'] += $count;
+                } else {
+                    if(isset($confirmed['rate'][$city][$town])) {
+                        $confirmed['rate'][$city][$town] = 0.0;
+                    }
                 }
             }
         }
-        ksort($confirmed['data']);
-        foreach ($confirmed['data'] as $city => $data2) {
-            ksort($confirmed['data'][$city]);
-        }
-    } else {
-        ksort($confirmed['data']);
-        foreach ($confirmed['data'] as $city => $data2) {
-            ksort($confirmed['data'][$city]);
-        }
     }
-    
+    ksort($confirmed['data']);
+    ksort($confirmed['rate']);
+    foreach ($confirmed['data'] as $city => $data2) {
+        ksort($confirmed['data'][$city]);
+        ksort($confirmed['rate'][$city]);
+    }
+
     file_put_contents($pathConfirmed . '/' . date('Ymd', $i) . '.json', json_encode($confirmed, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
