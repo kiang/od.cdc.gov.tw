@@ -97,16 +97,19 @@ while ($line = fgetcsv($fh, 2048)) {
                 ],
                 'data' => [],
                 'rate' => [],
+                'increase' => [],
             ];
         }
         $confirmed[$y]['meta']['total'] += $data['確定病例數'];
         if (!isset($confirmed[$y]['data'][$data['縣市']])) {
             $confirmed[$y]['data'][$data['縣市']] = [];
             $confirmed[$y]['rate'][$data['縣市']] = [];
+            $confirmed[$y]['increase'][$data['縣市']] = [];
         }
         if (!isset($confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']])) {
             $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] = 0;
             $confirmed[$y]['rate'][$data['縣市']][$data['鄉鎮']] = 0.0;
+            $confirmed[$y]['increase'][$data['縣市']][$data['鄉鎮']] = 0;
         }
         $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] += $data['確定病例數'];
         if(isset($rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']])) {
@@ -115,6 +118,7 @@ while ($line = fgetcsv($fh, 2048)) {
                     / $rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']],
                 1
             );
+            $confirmed[$y]['increase'][$data['縣市']][$data['鄉鎮']] = $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] - $rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']];
         } else {
             $confirmed[$y]['rate'][$data['縣市']][$data['鄉鎮']] = 1.0;
         }
