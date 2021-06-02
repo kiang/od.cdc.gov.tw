@@ -128,16 +128,16 @@ while ($line = fgetcsv($fh, 2048)) {
         }
         if (isset($towns[$townKey]['days'][$data['個案研判日']])) {
             $towns[$townKey]['days'][$data['個案研判日']] += $data['確定病例數'];
+            if ($data['性別'] === '女') {
+                $towns[$townKey]['gender']['f'] += $data['確定病例數'];
+            } else {
+                $towns[$townKey]['gender']['m'] += $data['確定病例數'];
+            }
+            if (!isset($towns[$townKey]['age'][$data['年齡層']])) {
+                $towns[$townKey]['age'][$data['年齡層']] = 0;
+            }
+            $towns[$townKey]['age'][$data['年齡層']] += $data['確定病例數'];
         }
-        if ($data['性別'] === '女') {
-            $towns[$townKey]['gender']['f'] += $data['確定病例數'];
-        } else {
-            $towns[$townKey]['gender']['m'] += $data['確定病例數'];
-        }
-        if (!isset($towns[$townKey]['age'][$data['年齡層']])) {
-            $towns[$townKey]['age'][$data['年齡層']] = 0;
-        }
-        $towns[$townKey]['age'][$data['年齡層']] += $data['確定病例數'];
     }
 }
 foreach ($confirmed as $y => $data1) {
