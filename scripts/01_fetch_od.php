@@ -113,17 +113,15 @@ while ($line = fgetcsv($fh, 2048)) {
         }
         $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] += $data['確定病例數'];
         if(isset($rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']])) {
+            $confirmed[$y]['increase'][$data['縣市']][$data['鄉鎮']] = $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] - $rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']];
             $confirmed[$y]['rate'][$data['縣市']][$data['鄉鎮']] = round(
-                ($confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] - $rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']])
-                    / $rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']],
+                $confirmed[$y]['increase'][$data['縣市']][$data['鄉鎮']] / $rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']],
                 1
             );
-            $confirmed[$y]['increase'][$data['縣市']][$data['鄉鎮']] = $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] - $rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']];
         } else {
             $confirmed[$y]['rate'][$data['縣市']][$data['鄉鎮']] = 1.0;
         }
-        
-
+    
         $townKey = $data['縣市'] . $data['鄉鎮'];
         if (!isset($towns[$townKey])) {
             $towns[$townKey] = $townTemplate;
@@ -157,7 +155,7 @@ foreach ($confirmed as $y => $data1) {
     }
     if ($fileToWrite) {
         file_put_contents($targetFile, json_encode($confirmed[$y], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        file_put_contents($pathConfirmed . '/' . $day . '.json', json_encode($confirmed[$y], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        file_put_contents($pathConfirmed . '/' . $confirmed[$y]['meta']['day'] . '.json', json_encode($confirmed[$y], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 }
 
