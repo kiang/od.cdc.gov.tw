@@ -16,6 +16,7 @@ $confirmed = [
     ],
     'data' => [],
     'rate' => [],
+    'increase' => [],
 ];
 
 $fh = fopen($dailyFile, 'r');
@@ -30,10 +31,13 @@ while ($line = fgetcsv($fh, 2048)) {
         $confirmed['meta']['total'] += $data['確定病例數'];
         if (!isset($confirmed['data'][$data['縣市']])) {
             $confirmed['data'][$data['縣市']] = [];
+            $confirmed['rate'][$data['縣市']] = [];
+            $confirmed['increase'][$data['縣市']] = [];
         }
         if (!isset($confirmed['data'][$data['縣市']][$data['鄉鎮']])) {
             $confirmed['data'][$data['縣市']][$data['鄉鎮']] = 0;
             $confirmed['rate'][$data['縣市']][$data['鄉鎮']] = 0.0;
+            $confirmed['increase'][$data['縣市']][$data['鄉鎮']] = 0;
         }
         $confirmed['data'][$data['縣市']][$data['鄉鎮']] += $data['確定病例數'];
     }
@@ -70,11 +74,14 @@ for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
                     if (!isset($confirmed['data'][$city])) {
                         $confirmed['data'][$city] = [];
                         $confirmed['rate'][$city] = [];
+                        $confirmed['increase'][$city] = [];
                     }
                     if (!isset($confirmed['data'][$city][$town])) {
                         $confirmed['data'][$city][$town] = 0;
                         $confirmed['rate'][$city][$town] = 0.0;
+                        $confirmed['increase'][$city][$town] = 0;
                     }
+                    $confirmed['increase'][$city][$town] = $count;
                     if($confirmed['data'][$city][$town] > 0) {
                         $confirmed['rate'][$city][$town] = round($count / $confirmed['data'][$city][$town], 1);
                     } else {
