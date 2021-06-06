@@ -56,12 +56,34 @@ if (!file_exists($pathTown)) {
 $timeBegin = strtotime('-60 days');
 $timeEnd = time();
 $townTemplate = [
+    'city' => '',
+    'area' => '',
     'days' => [],
     'gender' => [
         'm' => 0,
         'f' => 0,
     ],
-    'age' => [],
+    'age' => [
+        '0' => 0,
+        '1' => 0,
+        '2' => 0,
+        '3' => 0,
+        '4' => 0,
+        '5-9' => 0,
+        '10-14' => 0,
+        '15-19' => 0,
+        '20-24' => 0,
+        '25-29' => 0,
+        '30-34' => 0,
+        '35-39' => 0,
+        '40-44' => 0,
+        '45-49' => 0,
+        '50-54' => 0,
+        '55-59' => 0,
+        '60-64' => 0,
+        '65-69' => 0,
+        '70+' => 0,
+    ],
 ];
 for ($i = $timeBegin; $i < $timeEnd; $i += 86400) {
     $townTemplate['days'][date('Ymd', $i)] = 0;
@@ -126,6 +148,8 @@ while ($line = fgetcsv($fh, 2048)) {
         $townKey = $data['縣市'] . $data['鄉鎮'];
         if (!isset($towns[$townKey])) {
             $towns[$townKey] = $townTemplate;
+            $towns[$townKey]['city'] = $data['縣市'];
+            $towns[$townKey]['area'] = $data['鄉鎮'];
         }
         if (isset($towns[$townKey]['days'][$data['個案研判日']])) {
             $towns[$townKey]['days'][$data['個案研判日']] += $data['確定病例數'];
@@ -160,14 +184,6 @@ foreach ($confirmed as $y => $data1) {
     }
 }
 
-function cmp($a, $b)
-{
-    $a = intval($a);
-    $b = intval($b);
-    return ($a > $b);
-}
-
 foreach ($towns as $k => $data) {
-    uksort($data['age'], 'cmp');
     file_put_contents($pathTown . '/' . $k . '.json', json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
