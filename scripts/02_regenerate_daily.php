@@ -10,7 +10,7 @@ $now = date('Y-m-d H:i:s');
 
 $confirmed = [
     'meta' => [
-        'day' => '',
+        'day' => $dayBegin,
         'total' => 0,
         'modified' => $now,
     ],
@@ -70,6 +70,9 @@ for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
     if ($i !== $timeBegin) {
         foreach ($pool[$day] as $city => $data1) {
             foreach ($data1 as $town => $count) {
+                if(isset($confirmed['increase'][$city][$town])) {
+                    $confirmed['increase'][$city][$town] = 0;
+                }
                 if ($count > 0) {
                     if (!isset($confirmed['data'][$city])) {
                         $confirmed['data'][$city] = [];
