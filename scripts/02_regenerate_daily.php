@@ -68,23 +68,18 @@ foreach (glob($basePath . '/data/od/town/*.json') as $jsonFile) {
 
 for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
     $day = date('Ymd', $i);
+    if (!isset($pool[$day])) {
+        continue;
+    }
     $confirmed['meta']['day'] = $day;
     if ($i !== $timeBegin) {
         foreach ($pool[$day] as $city => $data1) {
             foreach ($data1 as $town => $count) {
-                if(isset($confirmed['increase'][$city][$town])) {
+                if (isset($confirmed['increase'][$city][$town])) {
                     $confirmed['increase'][$city][$town] = 0;
+                    $confirmed['avg7'][$city][$town] = 0.0;
                 }
-                $daySum7 = 0;
-                $daySumDay = $i;
-                for($j = 0; $j < 7; $j++) {
-                    $dayKey = date('Ymd', $daySumDay);
-                    if(isset($pool[$dayKey][$city][$town])) {
-                        $daySum7 += $pool[$dayKey][$city][$town];
-                    }
-                    $daySumDay -= 86400;
-                }
-                $confirmed['avg7'][$city][$town] = round($daySum7 / 7);
+
                 if ($count > 0) {
                     if (!isset($confirmed['data'][$city])) {
                         $confirmed['data'][$city] = [];
@@ -98,15 +93,26 @@ for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
                     }
                     $confirmed['increase'][$city][$town] = $count;
 
-                    if($confirmed['data'][$city][$town] > 0) {
+                    if ($confirmed['data'][$city][$town] > 0) {
                         $confirmed['rate'][$city][$town] = round($count / $confirmed['data'][$city][$town], 1);
                     } else {
                         $confirmed['rate'][$city][$town] = 1.0;
                     }
                     $confirmed['data'][$city][$town] += $count;
                     $confirmed['meta']['total'] += $count;
+
+                    $daySum7 = 0;
+                    $daySumDay = $i;
+                    for ($j = 0; $j < 7; $j++) {
+                        $dayKey = date('Ymd', $daySumDay);
+                        if (isset($pool[$dayKey][$city][$town])) {
+                            $daySum7 += $pool[$dayKey][$city][$town];
+                        }
+                        $daySumDay -= 86400;
+                    }
+                    $confirmed['avg7'][$city][$town] = round($daySum7 / 7, 1);
                 } else {
-                    if(isset($confirmed['rate'][$city][$town])) {
+                    if (isset($confirmed['rate'][$city][$town])) {
                         $confirmed['rate'][$city][$town] = 0.0;
                     }
                 }
