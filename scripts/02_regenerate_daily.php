@@ -17,6 +17,7 @@ $confirmed = [
     'data' => [],
     'rate' => [],
     'increase' => [],
+    'avg7' => [],
 ];
 
 $fh = fopen($dailyFile, 'r');
@@ -33,11 +34,13 @@ while ($line = fgetcsv($fh, 2048)) {
             $confirmed['data'][$data['縣市']] = [];
             $confirmed['rate'][$data['縣市']] = [];
             $confirmed['increase'][$data['縣市']] = [];
+            $confirmed['avg7'][$data['縣市']] = [];
         }
         if (!isset($confirmed['data'][$data['縣市']][$data['鄉鎮']])) {
             $confirmed['data'][$data['縣市']][$data['鄉鎮']] = 0;
             $confirmed['rate'][$data['縣市']][$data['鄉鎮']] = 0.0;
             $confirmed['increase'][$data['縣市']][$data['鄉鎮']] = 0;
+            $confirmed['avg7'][$data['縣市']][$data['鄉鎮']] = 0.0;
         }
         $confirmed['data'][$data['縣市']][$data['鄉鎮']] += $data['確定病例數'];
     }
@@ -65,7 +68,6 @@ foreach (glob($basePath . '/data/od/town/*.json') as $jsonFile) {
 
 for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
     $day = date('Ymd', $i);
-    $yesterday = date('Ymd', strtotime('-1 day', $i));
     $confirmed['meta']['day'] = $day;
     if ($i !== $timeBegin) {
         foreach ($pool[$day] as $city => $data1) {
@@ -73,6 +75,16 @@ for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
                 if(isset($confirmed['increase'][$city][$town])) {
                     $confirmed['increase'][$city][$town] = 0;
                 }
+                $daySum7 = 0;
+                $daySumDay = $i;
+                for($j = 0; $j < 7; $j++) {
+                    $dayKey = date('Ymd', $daySumDay);
+                    if(isset($pool[$dayKey][$city][$town])) {
+                        $daySum7 += $pool[$dayKey][$city][$town];
+                    }
+                    $daySumDay -= 86400;
+                }
+                $confirmed['avg7'][$city][$town] = round($daySum7 / 7);
                 if ($count > 0) {
                     if (!isset($confirmed['data'][$city])) {
                         $confirmed['data'][$city] = [];
@@ -85,6 +97,7 @@ for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
                         $confirmed['increase'][$city][$town] = 0;
                     }
                     $confirmed['increase'][$city][$town] = $count;
+
                     if($confirmed['data'][$city][$town] > 0) {
                         $confirmed['rate'][$city][$town] = round($count / $confirmed['data'][$city][$town], 1);
                     } else {
@@ -102,9 +115,13 @@ for ($i = $timeBegin; $i <= $timeEnd; $i += 86400) {
     }
     ksort($confirmed['data']);
     ksort($confirmed['rate']);
+    ksort($confirmed['increase']);
+    ksort($confirmed['avg7']);
     foreach ($confirmed['data'] as $city => $data2) {
         ksort($confirmed['data'][$city]);
         ksort($confirmed['rate'][$city]);
+        ksort($confirmed['increase'][$city]);
+        ksort($confirmed['avg7'][$city]);
     }
 
     file_put_contents($pathConfirmed . '/' . date('Ymd', $i) . '.json', json_encode($confirmed, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));

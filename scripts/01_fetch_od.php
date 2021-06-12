@@ -93,6 +93,7 @@ $confirmed = [];
 $now = date('Y-m-d H:i:s', $timeEnd);
 $towns = [];
 $rateBase = [];
+$avg7Pool = [];
 while ($line = fgetcsv($fh, 2048)) {
     $data = array_combine($head, $line);
     if ($data['是否為境外移入'] === '否') {
@@ -106,8 +107,9 @@ while ($line = fgetcsv($fh, 2048)) {
             $day = date('Ymd', $dayTime);
             $rateBaseDay = date('Ymd', strtotime('-1 day', $dayTime));
             $rateBaseFile = $pathConfirmed . '/' . $rateBaseDay . '.json';
-            if(file_exists($rateBaseFile)) {
+            if (file_exists($rateBaseFile)) {
                 $rateBase[$y] = json_decode(file_get_contents($pathConfirmed . '/' . $rateBaseDay . '.json'), true);
+                $avg7Pool[$rateBaseDay] = $rateBase[$y];
             } else {
                 $rateBase[$y] = [];
             }
@@ -120,6 +122,7 @@ while ($line = fgetcsv($fh, 2048)) {
                 'data' => [],
                 'rate' => [],
                 'increase' => [],
+                'avg7' => [],
             ];
         }
         $confirmed[$y]['meta']['total'] += $data['確定病例數'];
@@ -127,24 +130,16 @@ while ($line = fgetcsv($fh, 2048)) {
             $confirmed[$y]['data'][$data['縣市']] = [];
             $confirmed[$y]['rate'][$data['縣市']] = [];
             $confirmed[$y]['increase'][$data['縣市']] = [];
+            $confirmed[$y]['avg7'][$data['縣市']] = [];
         }
         if (!isset($confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']])) {
             $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] = 0;
             $confirmed[$y]['rate'][$data['縣市']][$data['鄉鎮']] = 0.0;
             $confirmed[$y]['increase'][$data['縣市']][$data['鄉鎮']] = 0;
+            $confirmed[$y]['avg7'][$data['縣市']][$data['鄉鎮']] = 0;
         }
         $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] += $data['確定病例數'];
-        if(isset($rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']])) {
-            $confirmed[$y]['increase'][$data['縣市']][$data['鄉鎮']] = $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']] - $rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']];
-            $confirmed[$y]['rate'][$data['縣市']][$data['鄉鎮']] = round(
-                $confirmed[$y]['increase'][$data['縣市']][$data['鄉鎮']] / $rateBase[$y]['data'][$data['縣市']][$data['鄉鎮']],
-                1
-            );
-        } else {
-            $confirmed[$y]['increase'][$data['縣市']][$data['鄉鎮']] = $confirmed[$y]['data'][$data['縣市']][$data['鄉鎮']];
-            $confirmed[$y]['rate'][$data['縣市']][$data['鄉鎮']] = 1.0;
-        }
-    
+
         $townKey = $data['縣市'] . $data['鄉鎮'];
         if (!isset($towns[$townKey])) {
             $towns[$townKey] = $townTemplate;
@@ -167,9 +162,49 @@ while ($line = fgetcsv($fh, 2048)) {
 }
 foreach ($confirmed as $y => $data1) {
     ksort($confirmed[$y]['data']);
+    ksort($confirmed[$y]['rate']);
+    ksort($confirmed[$y]['increase']);
+    ksort($confirmed[$y]['avg7']);
     foreach ($confirmed[$y]['data'] as $city => $data2) {
         ksort($confirmed[$y]['data'][$city]);
+        ksort($confirmed[$y]['rate'][$city]);
+        ksort($confirmed[$y]['increase'][$city]);
+        ksort($confirmed[$y]['avg7'][$city]);
+
+        foreach ($data2 as $town => $data3) {
+            if (isset($rateBase[$y]['data'][$city][$town])) {
+                $confirmed[$y]['increase'][$city][$town] = $confirmed[$y]['data'][$city][$town] - $rateBase[$y]['data'][$city][$town];
+                $confirmed[$y]['rate'][$city][$town] = round($confirmed[$y]['increase'][$city][$town] / $rateBase[$y]['data'][$city][$town], 1);
+            } else {
+                $confirmed[$y]['increase'][$city][$town] = $confirmed[$y]['data'][$city][$town];
+                $confirmed[$y]['rate'][$city][$town] = 1.0;
+            }
+
+            $daySum7 = 0;
+            $daySumDay = strtotime($confirmed[$y]['meta']['day']);
+            for ($j = 0; $j < 7; $j++) {
+                $dayKey = date('Ymd', $daySumDay);
+                if ($dayKey == $confirmed[$y]['meta']['day']) {
+                    if(isset($confirmed[$y]['increase'][$city][$town])) {
+                        $daySum7 += $confirmed[$y]['increase'][$city][$town];
+                    }
+                } else {
+                    if(!isset($avg7Pool[$dayKey])) {
+                        $rateBaseFile = $pathConfirmed . '/' . $dayKey . '.json';
+                        if (file_exists($rateBaseFile)) {
+                            $avg7Pool[$dayKey] = json_decode(file_get_contents($rateBaseFile), true);
+                        }
+                    }
+                    if(isset($avg7Pool[$dayKey]['increase'][$city][$town])) {
+                        $daySum7 += $avg7Pool[$dayKey]['increase'][$city][$town];
+                    }
+                }
+                $daySumDay -= 86400;
+            }
+            $confirmed[$y]['avg7'][$city][$town] = round($daySum7 / 7);
+        }
     }
+
     $targetFile = $pathConfirmed . '/' . $y . '.json';
     $fileToWrite = true;
     if (file_exists($targetFile)) {
