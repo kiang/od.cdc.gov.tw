@@ -99,23 +99,9 @@ while ($line = fgetcsv($fh, 2048)) {
     if ($data['是否為境外移入'] === '否') {
         $y = substr($data['個案研判日'], 0, 4);
         if (!isset($confirmed[$y])) {
-            if ($y == date('Y')) {
-                $dayTime = strtotime('-1 day');
-            } else {
-                $dayTime = strtotime($y . '-12-31');
-            }
-            $day = date('Ymd', $dayTime);
-            $rateBaseDay = date('Ymd', strtotime('-1 day', $dayTime));
-            $rateBaseFile = $pathConfirmed . '/' . $rateBaseDay . '.json';
-            if (file_exists($rateBaseFile)) {
-                $rateBase[$y] = json_decode(file_get_contents($pathConfirmed . '/' . $rateBaseDay . '.json'), true);
-                $avg7Pool[$rateBaseDay] = $rateBase[$y];
-            } else {
-                $rateBase[$y] = [];
-            }
             $confirmed[$y] = [
                 'meta' => [
-                    'day' => $day,
+                    'day' => $data['個案研判日'],
                     'total' => 0,
                     'modified' => $now,
                 ],
@@ -124,6 +110,12 @@ while ($line = fgetcsv($fh, 2048)) {
                 'increase' => [],
                 'avg7' => [],
             ];
+            if ($y != date('Y')) {
+                $confirmed[$y]['meta']['day'] = date('Ymd', strtotime($y . '-12-31'));
+            }
+        }
+        if($data['個案研判日'] > $confirmed[$y]['meta']['day']) {
+            $confirmed[$y]['meta']['day'] = $data['個案研判日'];
         }
         $confirmed[$y]['meta']['total'] += $data['確定病例數'];
         if (!isset($confirmed[$y]['data'][$data['縣市']])) {
@@ -161,6 +153,15 @@ while ($line = fgetcsv($fh, 2048)) {
     }
 }
 foreach ($confirmed as $y => $data1) {
+    $rateBaseDay = date('Ymd', strtotime('-1 day', strtotime($data1['meta']['day'])));
+    $rateBaseFile = $pathConfirmed . '/' . $rateBaseDay . '.json';
+    if (file_exists($rateBaseFile)) {
+        $rateBase[$y] = json_decode(file_get_contents($pathConfirmed . '/' . $rateBaseDay . '.json'), true);
+        $avg7Pool[$rateBaseDay] = $rateBase[$y];
+    } else {
+        $rateBase[$y] = [];
+    }
+
     ksort($confirmed[$y]['data']);
     ksort($confirmed[$y]['rate']);
     ksort($confirmed[$y]['increase']);
@@ -201,7 +202,7 @@ foreach ($confirmed as $y => $data1) {
                 }
                 $daySumDay -= 86400;
             }
-            $confirmed[$y]['avg7'][$city][$town] = round($daySum7 / 7);
+            $confirmed[$y]['avg7'][$city][$town] = round($daySum7 / 7, 1);
         }
     }
 
