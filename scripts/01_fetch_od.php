@@ -97,6 +97,7 @@ $avg7Pool = [];
 while ($line = fgetcsv($fh, 2048)) {
     $data = array_combine($head, $line);
     if ($data['是否為境外移入'] === '否') {
+        $data['個案研判日'] = str_replace('/', '', $data['個案研判日']);
         $y = substr($data['個案研判日'], 0, 4);
         if (!isset($confirmed[$y])) {
             $confirmed[$y] = [
