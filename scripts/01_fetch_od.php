@@ -94,10 +94,14 @@ $now = date('Y-m-d H:i:s', $timeEnd);
 $towns = [];
 $rateBase = [];
 $avg7Pool = [];
+$latestDay = 0;
 while ($line = fgetcsv($fh, 2048)) {
     $data = array_combine($head, $line);
     if ($data['是否為境外移入'] === '否') {
         $data['個案研判日'] = str_replace('/', '', $data['個案研判日']);
+        if($latestDay < $data['個案研判日']) {
+            $latestDay = $data['個案研判日'];
+        }
         $y = substr($data['個案研判日'], 0, 4);
         if (!isset($confirmed[$y])) {
             $confirmed[$y] = [
@@ -222,5 +226,10 @@ foreach ($confirmed as $y => $data1) {
 }
 
 foreach ($towns as $k => $data) {
+    foreach($data['days'] AS $d => $v) {
+        if($d > $latestDay) {
+            unset($data['days'][$d]);
+        }
+    }
     file_put_contents($pathTown . '/' . $k . '.json', json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
