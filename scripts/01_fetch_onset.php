@@ -111,7 +111,7 @@ while ($line = fgetcsv($fh, 2048)) {
         }
         if (isset($towns[$townKey]['days'][$data['發病日']])) {
             $towns[$townKey]['days'][$data['發病日']] += $data['確定病例數'];
-            if ($data['性別'] === '女') {
+            if ($data['性別'] === 'F') {
                 $towns[$townKey]['gender']['f'] += $data['確定病例數'];
             } else {
                 $towns[$townKey]['gender']['m'] += $data['確定病例數'];
