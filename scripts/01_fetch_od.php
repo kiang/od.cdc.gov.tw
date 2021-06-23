@@ -180,7 +180,7 @@ foreach ($confirmed as $y => $data1) {
         foreach ($data2 as $town => $data3) {
             if (isset($rateBase[$y]['data'][$city][$town])) {
                 $confirmed[$y]['increase'][$city][$town] = $confirmed[$y]['data'][$city][$town] - $rateBase[$y]['data'][$city][$town];
-                $confirmed[$y]['rate'][$city][$town] = round($confirmed[$y]['increase'][$city][$town] / $rateBase[$y]['data'][$city][$town], 1);
+                $confirmed[$y]['rate'][$city][$town] = round($confirmed[$y]['increase'][$city][$town] / $rateBase[$y]['data'][$city][$town], 2);
             } else {
                 $confirmed[$y]['increase'][$city][$town] = $confirmed[$y]['data'][$city][$town];
                 $confirmed[$y]['rate'][$city][$town] = 1.0;
@@ -207,7 +207,7 @@ foreach ($confirmed as $y => $data1) {
                 }
                 $daySumDay -= 86400;
             }
-            $confirmed[$y]['avg7'][$city][$town] = round($daySum7 / 7, 1);
+            $confirmed[$y]['avg7'][$city][$town] = round($daySum7 / 7, 2);
         }
     }
 
