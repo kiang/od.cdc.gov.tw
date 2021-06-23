@@ -9,11 +9,9 @@ $dataPath = $basePath . '/data/od';
 $statsFile = $rawPath . '/covid19_tw_stats.csv';
 $specimenFile = $rawPath . '/covid19_tw_specimen.csv';
 $dailyFile = $rawPath . '/Day_Confirmation_Age_County_Gender_19CoV.csv';
-$dailyFile2 = $rawPath . '/Age_County_Gender_day_19Cov.csv';
 file_put_contents($statsFile, file_get_contents('https://od.cdc.gov.tw/eic/covid19/covid19_tw_stats.csv'));
 file_put_contents($specimenFile, file_get_contents('https://od.cdc.gov.tw/eic/covid19/covid19_tw_specimen.csv'));
 file_put_contents($dailyFile, file_get_contents('https://od.cdc.gov.tw/eic/Day_Confirmation_Age_County_Gender_19CoV.csv'));
-file_put_contents($dailyFile2, file_get_contents('https://od.cdc.gov.tw/eic/Age_County_Gender_day_19Cov.csv'));
 
 $fh = fopen($specimenFile, 'r');
 $head = fgetcsv($fh, 2048);
