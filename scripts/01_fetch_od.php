@@ -97,7 +97,7 @@ $avg7Pool = [];
 $latestDay = 0;
 while ($line = fgetcsv($fh, 2048)) {
     $data = array_combine($head, $line);
-    if ($data['是否為境外移入'] === '否') {
+    if ($data['是否為境外移入'] !== '是') {
         $data['個案研判日'] = str_replace('/', '', $data['個案研判日']);
         if($latestDay < $data['個案研判日']) {
             $latestDay = $data['個案研判日'];

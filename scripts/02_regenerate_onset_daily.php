@@ -24,7 +24,7 @@ $fh = fopen($dailyFile, 'r');
 $head = fgetcsv($fh, 2048);
 while ($line = fgetcsv($fh, 2048)) {
     $data = array_combine($head, $line);
-    if ($data['是否為境外移入'] === '否') {
+    if ($data['是否為境外移入'] !== '是') {
         $y = substr($data['發病日'], 0, 4);
         $data['發病日'] = str_replace('/', '', $data['發病日']);
         if ($y != 2021 || $data['發病日'] > $dayBegin) {

@@ -63,7 +63,7 @@ $avg7Pool = [];
 $latestDay = 0;
 while ($line = fgetcsv($fh, 2048)) {
     $data = array_combine($head, $line);
-    if ($data['是否為境外移入'] === '否') {
+    if ($data['是否為境外移入'] !== '是') {
         $data['發病日'] = str_replace('/', '', $data['發病日']);
         if($latestDay < $data['發病日']) {
             $latestDay = $data['發病日'];
