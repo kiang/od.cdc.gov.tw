@@ -4,7 +4,7 @@ $dailyFile = $basePath . '/raw/od/Day_Confirmation_Age_County_Gender_19CoV.csv';
 
 $pathConfirmed = $basePath . '/data/od/confirmed';
 $timeBegin = strtotime('2021-03-31');
-$timeEnd = strtotime('-2 days');
+$timeEnd = strtotime('-1 days');
 $dayBegin = date('Ymd', $timeBegin);
 $now = date('Y-m-d H:i:s');
 
