@@ -24,6 +24,7 @@ $fh = fopen($dailyFile, 'r');
 $head = fgetcsv($fh, 2048);
 while ($line = fgetcsv($fh, 2048)) {
     $data = array_combine($head, $line);
+    $data['鄉鎮'] = str_replace(['　', ' '], '', $data['鄉鎮']);
     if ($data['是否為境外移入'] !== '是') {
         $y = substr($data['個案研判日'], 0, 4);
         $data['個案研判日'] = str_replace('/', '', $data['個案研判日']);
