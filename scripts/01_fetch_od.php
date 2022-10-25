@@ -9,9 +9,14 @@ $dataPath = $basePath . '/data/od';
 $statsFile = $rawPath . '/covid19_tw_stats.csv';
 $specimenFile = $rawPath . '/covid19_tw_specimen.csv';
 $dailyFile = $rawPath . '/Day_Confirmation_Age_County_Gender_19CoV.csv';
+$dailyGzFile = $rawPath . '/Day_Confirmation_Age_County_Gender_19CoV.csv.gz';
 file_put_contents($statsFile, file_get_contents('https://od.cdc.gov.tw/eic/covid19/covid19_tw_stats.csv'));
 file_put_contents($specimenFile, file_get_contents('https://od.cdc.gov.tw/eic/covid19/covid19_tw_specimen.csv'));
-file_put_contents($dailyFile, file_get_contents('https://od.cdc.gov.tw/eic/Day_Confirmation_Age_County_Gender_19CoV.csv'));
+$c = file_get_contents('https://od.cdc.gov.tw/eic/Day_Confirmation_Age_County_Gender_19CoV.csv');
+file_put_contents($dailyFile, $c);
+$fp = gzopen($dailyGzFile, 'w9');
+gzwrite($fp, $c);
+gzclose($fp);
 
 $fh = fopen($specimenFile, 'r');
 $head = fgetcsv($fh, 2048);
@@ -100,7 +105,7 @@ while ($line = fgetcsv($fh, 2048)) {
     $data['鄉鎮'] = str_replace(['　', ' '], '', $data['鄉鎮']);
     if ($data['是否為境外移入'] !== '是') {
         $data['個案研判日'] = str_replace('/', '', $data['個案研判日']);
-        if($latestDay < $data['個案研判日']) {
+        if ($latestDay < $data['個案研判日']) {
             $latestDay = $data['個案研判日'];
         }
         $y = substr($data['個案研判日'], 0, 4);
@@ -120,7 +125,7 @@ while ($line = fgetcsv($fh, 2048)) {
                 $confirmed[$y]['meta']['day'] = date('Ymd', strtotime($y . '-12-31'));
             }
         }
-        if($data['個案研判日'] > $confirmed[$y]['meta']['day']) {
+        if ($data['個案研判日'] > $confirmed[$y]['meta']['day']) {
             $confirmed[$y]['meta']['day'] = $data['個案研判日'];
         }
         $confirmed[$y]['meta']['total'] += $data['確定病例數'];
@@ -192,17 +197,17 @@ foreach ($confirmed as $y => $data1) {
             for ($j = 0; $j < 7; $j++) {
                 $dayKey = date('Ymd', $daySumDay);
                 if ($dayKey == $confirmed[$y]['meta']['day']) {
-                    if(isset($confirmed[$y]['increase'][$city][$town])) {
+                    if (isset($confirmed[$y]['increase'][$city][$town])) {
                         $daySum7 += $confirmed[$y]['increase'][$city][$town];
                     }
                 } else {
-                    if(!isset($avg7Pool[$dayKey])) {
+                    if (!isset($avg7Pool[$dayKey])) {
                         $rateBaseFile = $pathConfirmed . '/' . $dayKey . '.json';
                         if (file_exists($rateBaseFile)) {
                             $avg7Pool[$dayKey] = json_decode(file_get_contents($rateBaseFile), true);
                         }
                     }
-                    if(isset($avg7Pool[$dayKey]['increase'][$city][$town])) {
+                    if (isset($avg7Pool[$dayKey]['increase'][$city][$town])) {
                         $daySum7 += $avg7Pool[$dayKey]['increase'][$city][$town];
                     }
                 }
@@ -227,8 +232,8 @@ foreach ($confirmed as $y => $data1) {
 }
 
 foreach ($towns as $k => $data) {
-    foreach($data['days'] AS $d => $v) {
-        if($d > $latestDay) {
+    foreach ($data['days'] as $d => $v) {
+        if ($d > $latestDay) {
             unset($data['days'][$d]);
         }
     }

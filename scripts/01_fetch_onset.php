@@ -7,7 +7,12 @@ if (!file_exists($rawPath)) {
 $dataPath = $basePath . '/data/od';
 
 $dailyFile = $rawPath . '/Age_County_Gender_day_19Cov.csv';
-file_put_contents($dailyFile, file_get_contents('https://od.cdc.gov.tw/eic/Age_County_Gender_day_19Cov.csv'));
+$dailyGzFile = $rawPath . '/Age_County_Gender_day_19Cov.csv';
+$c = file_get_contents('https://od.cdc.gov.tw/eic/Age_County_Gender_day_19Cov.csv');
+file_put_contents($dailyFile, $c);
+$fp = gzopen($dailyGzFile, 'w9');
+gzwrite($fp, $c);
+gzclose($fp);
 
 $fh = fopen($dailyFile, 'r');
 $head = fgetcsv($fh, 2048);
