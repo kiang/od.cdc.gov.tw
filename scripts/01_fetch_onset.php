@@ -1,14 +1,24 @@
 <?php
 $basePath = dirname(__DIR__);
-$rawPath = $basePath . '/raw/od';
+$rawPath = $basePath . '/raw/od2024';
 if (!file_exists($rawPath)) {
     mkdir($rawPath, 0777, true);
 }
-$dataPath = $basePath . '/data/od';
+$dataPath = $basePath . '/data/od2024';
+if (!file_exists($dataPath)) {
+    mkdir($dataPath, 0777, true);
+}
+
+$arrContextOptions=array(
+    "ssl"=>array(
+        "verify_peer"=>false,
+        "verify_peer_name"=>false,
+    ),
+);
 
 $dailyFile = $rawPath . '/Age_County_Gender_day_19Cov.csv';
 $dailyGzFile = $rawPath . '/Age_County_Gender_day_19Cov.csv.gz';
-$c = file_get_contents('https://od.cdc.gov.tw/eic/Age_County_Gender_day_19Cov.csv');
+$c = file_get_contents('https://od.cdc.gov.tw/eic/Age_County_Gender_day_19CVS.csv', false, stream_context_create($arrContextOptions));
 file_put_contents($dailyFile, $c);
 $fp = gzopen($dailyGzFile, 'w9');
 gzwrite($fp, $c);

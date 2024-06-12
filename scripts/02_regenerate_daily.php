@@ -1,8 +1,8 @@
 <?php
 $basePath = dirname(__DIR__);
-$dailyFile = $basePath . '/raw/od/Day_Confirmation_Age_County_Gender_19CoV.csv';
+$dailyFile = $basePath . '/raw/od2024/Day_Confirmation_Age_County_Gender_19CoV.csv';
 
-$pathConfirmed = $basePath . '/data/od/confirmed';
+$pathConfirmed = $basePath . '/data/od2024/confirmed';
 $timeBegin = strtotime('2021-03-31');
 $timeEnd = strtotime('-1 days');
 $dayBegin = date('Ymd', $timeBegin);
@@ -49,7 +49,7 @@ while ($line = fgetcsv($fh, 2048)) {
 }
 
 $pool = [];
-foreach (glob($basePath . '/data/od/town/*.json') as $jsonFile) {
+foreach (glob($basePath . '/data/od2024/town/*.json') as $jsonFile) {
     $p = pathinfo($jsonFile);
     $city = mb_substr($p['filename'], 0, 3, 'utf-8');
     $town = mb_substr($p['filename'], 3, null, 'utf-8');
