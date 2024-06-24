@@ -18,6 +18,7 @@ $arrContextOptions=array(
 
 $dailyFile = $rawPath . '/Day_Confirmation_Age_County_Gender_19CoV.csv';
 $dailyGzFile = $rawPath . '/Day_Confirmation_Age_County_Gender_19CoV.csv.gz';
+// from https://data.gov.tw/api/v2/rest/dataset/120711 地區年齡性別統計表-嚴重特殊傳染性肺炎-依個案研判日統計(以日為單位)
 $c = file_get_contents('https://od.cdc.gov.tw/eic/Day_Confirmation_Age_County_Gender_19CVS.csv', false, stream_context_create($arrContextOptions));
 file_put_contents($dailyFile, $c);
 $fp = gzopen($dailyGzFile, 'w9');
